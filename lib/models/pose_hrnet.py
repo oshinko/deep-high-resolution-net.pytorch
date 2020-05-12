@@ -19,6 +19,14 @@ BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
 
 
+class NoneModule(nn.Module):
+    def forward(self, x):
+        return x
+
+
+_none = NoneModule()
+
+
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
@@ -207,7 +215,7 @@ class HighResolutionModule(nn.Module):
                         )
                     )
                 elif j == i:
-                    fuse_layer.append(None)
+                    fuse_layer.append(_none)
                 else:
                     conv3x3s = []
                     for k in range(i-j):
@@ -351,7 +359,7 @@ class PoseHighResolutionNet(nn.Module):
                         )
                     )
                 else:
-                    transition_layers.append(None)
+                    transition_layers.append(_none)
             else:
                 conv3x3s = []
                 for j in range(i+1-num_branches_pre):
@@ -433,7 +441,7 @@ class PoseHighResolutionNet(nn.Module):
 
         x_list = []
         for i in range(self.stage2_cfg['NUM_BRANCHES']):
-            if self.transition1[i] is not None:
+            if self.transition1[i] is not None and not isinstance(self.transition1[i], NoneModule):
                 x_list.append(self.transition1[i](x))
             else:
                 x_list.append(x)
@@ -441,7 +449,7 @@ class PoseHighResolutionNet(nn.Module):
 
         x_list = []
         for i in range(self.stage3_cfg['NUM_BRANCHES']):
-            if self.transition2[i] is not None:
+            if self.transition2[i] is not None and not isinstance(self.transition2[i], NoneModule):
                 x_list.append(self.transition2[i](y_list[-1]))
             else:
                 x_list.append(y_list[i])
@@ -449,7 +457,7 @@ class PoseHighResolutionNet(nn.Module):
 
         x_list = []
         for i in range(self.stage4_cfg['NUM_BRANCHES']):
-            if self.transition3[i] is not None:
+            if self.transition3[i] is not None and not isinstance(self.transition3[i], NoneModule):
                 x_list.append(self.transition3[i](y_list[-1]))
             else:
                 x_list.append(y_list[i])
